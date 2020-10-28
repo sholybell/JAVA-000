@@ -17,8 +17,7 @@ public class MyClassLoader extends ClassLoader {
 
     @Override
     protected Class<?> findClass(String name) throws ClassNotFoundException {
-        try {
-            InputStream in = new FileInputStream(new File("C:\\Users\\Sholybell\\Desktop\\java进阶作业\\Hello.xlass"));
+        try (InputStream in = new FileInputStream(new File("C:\\Users\\Sholybell\\Desktop\\java进阶作业\\Hello.xlass"))){
             byte[] bytes = new byte[399];
             IOUtils.read(in, bytes);
             for (int i = 0; i < bytes.length; i++) {
