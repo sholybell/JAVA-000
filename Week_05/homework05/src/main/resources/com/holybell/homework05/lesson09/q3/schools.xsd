@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xsd:schema xmlns="http://www.holybell.com/schema/schools"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="http://www.holybell.com/schema/schools">
+
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
+
+    <!-- 定义 School 类型（复杂类型） -->
+    <xsd:complexType name="School">
+        <xsd:attribute name="id" type="xsd:long" use="required"/>
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="totalStudents" type="xsd:long" use="required"/>
+    </xsd:complexType>
+
+    <!-- 定义 school 元素 -->
+    <xsd:element name="qinghua" type="School"/>
+</xsd:schema>

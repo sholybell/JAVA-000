@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+        xmlns="http://www.springframework.org/schema/beans"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:schools="http://www.holybell.com/schema/schools"
+        xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.holybell.com/schema/schools
+        http://www.holybell.com/schema/schools.xsd">
+
+    <schools:qinghua id="1" name="清华大学" totalStudents="2000"/>
+</beans>
