@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.holybell.homework08.mapper.UserMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id"
+            parameterType="com.holybell.homework08.model.User">
+        INSERT INTO tab_user (name,sex,age,create_time,update_time,status ) VALUES (#{name},#{sex},#{age},#{createTime},#{updateTime},#{status})
+    </insert>
+
+    <select id="selectAll" resultType="com.holybell.homework08.model.User">
+        select * from tab_user t
+	</select>
+
+    <delete id="deleteAll">
+        delete from tab_user
+    </delete>
+
+    <select id="countAll" resultType="java.lang.Long">
+        select count(1) from tab_user
+    </select>
+
+    <select id="select" resultType="com.holybell.homework08.model.User">
+        select * from tab_user
+        <where>
+            <if test="id != null">
+                id = #{id}
+            </if>
+            <if test="age != null">
+                and age = #{age}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectAgeRangeLimit" resultType="com.holybell.homework08.model.User">
+        select * from tab_user where age > #{age} limit #{limit}
+    </select>
+
+    <update id="updateById">
+        update tab_user
+        <set>
+            <if test="user.name != null">
+                name = #{user.name},
+            </if>
+            <if test="user.sex != null">
+                sex = #{user.sex},
+            </if>
+            <if test="user.age != null">
+                age = #{user.age},
+            </if>
+            <if test="user.createTime != null">
+                create_time = #{user.createTime},
+            </if>
+            <if test="user.updateTime != null">
+                update_time = #{user.updateTime},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE from tab_user where id=#{id}
+    </delete>
+</mapper>
