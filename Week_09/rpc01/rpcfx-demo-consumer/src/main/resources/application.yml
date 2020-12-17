@@ -1,0 +1,13 @@
+server:
+  port: 8081
+  profiles:
+    active: true
+
+logging:
+  level:
+    root: info
+  path: "./logs"
+
+
+rpcfx:
+  fallback: true
