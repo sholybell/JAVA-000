@@ -6,7 +6,7 @@ import io.kimmking.rpcfx.demo.api.service.UserService;
 import org.springframework.stereotype.Component;
 
 @Component
-@RpcClient(url = "http://localhost:8080/")
+@RpcClient(url = "http://localhost:8081/")
 public class UserServiceImpl implements UserService {
 
     /**

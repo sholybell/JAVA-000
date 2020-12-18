@@ -9,7 +9,13 @@ import io.kimmking.rpcfx.api.RpcfxRequest;
 import io.kimmking.rpcfx.api.RpcfxResponse;
 import io.kimmking.rpcfx.errorhandler.RpcfxErrorHandler;
 import io.kimmking.rpcfx.exception.RpcfxException;
+import io.kimmking.rpcfx.registry.RegistryExtractor;
+import io.kimmking.rpcfx.registry.RegistryListener;
+import io.kimmking.rpcfx.registry.RpcServerRegister;
+import io.kimmking.rpcfx.registry.ServiceInfo;
 import io.kimmking.rpcfx.util.HttpUtil;
+import io.kimmking.rpcfx.zk.ZkUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -17,31 +23,49 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @Component
 @Aspect
 public class RpcProxyFactoryAspect {
 
     @Autowired(required = false)
-    @Qualifier("rpcfxErrorHandler")
     private RpcfxErrorHandler rpcfxErrorHandler;
 
     private Logger logger = LoggerFactory.getLogger(RpcProxyFactoryAspect.class);
 
     private XStream xstream = new XStream(new StaxDriver());
 
+    private static final Map<String, ConcurrentHashMap<String, CopyOnWriteArrayList<ServiceInfo>>> localReigstryCenter = new ConcurrentHashMap<>();
+
     {
         XStream.setupDefaultSecurity(xstream);
-        xstream.allowTypes(new String[]{"io.kimmking.rpcfx.api.RpcfxResponse", "io.kimmking.rpcfx.demo.api.model.Order", "io.kimmking.rpcfx.demo.api.model.User"});
+        // TODO 如何动态增加？ 扫描指定包？
+        xstream.allowTypes(new String[]{
+                "io.kimmking.rpcfx.api.RpcfxResponse",
+                "io.kimmking.rpcfx.demo.api.model.Order",
+                "io.kimmking.rpcfx.demo.api.model.User"
+        });
+
+        // 确保ZK注册根目录存在，不存在先创建，避免先启动RPC客户端
+        if (!ZkUtil.checkExists(RpcServerRegister.zkNodePrefix)) {
+            ZkUtil.createNode(RpcServerRegister.zkNodePrefix, "", null);
+        }
+        // 拉取注册信息
+        RegistryExtractor.extractRegistry(localReigstryCenter);
+        // 监听注册信息
+        RegistryListener.listenRegistry(localReigstryCenter);
     }
+
 
     // 是否降级处理
     @Value("${rpcfx.fallback}")
@@ -59,14 +83,26 @@ public class RpcProxyFactoryAspect {
     @Around("pointcut()")
     public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
         RpcfxRequest request = new RpcfxRequest();
-        request.setServiceClass(joinPoint.getSignature().getDeclaringType().getInterfaces()[0]);
+        Class _interface = joinPoint.getSignature().getDeclaringType().getInterfaces()[0];
+        request.setServiceClass(_interface);
         request.setMethod(joinPoint.getSignature().getName());
         request.setParams(joinPoint.getArgs());
-        String url = getUrl(joinPoint);
 
-        if (StringUtils.isEmpty(url)) {
-            throw new RpcfxException("请检查是否有 @RpcClient 注解，以及是否配置了url属性!");
+        String url = "";
+        String group = "default-group";     // TODO RpcClient注解添加指定group和version的功能
+        String serviceName = _interface.getCanonicalName();
+        if (localReigstryCenter.get(serviceName) == null || localReigstryCenter.get(serviceName).get(group) == null) {
+            throw new RpcfxException("未检测到相应服务的注册信息!");
         }
+
+        List<ServiceInfo> serviceInfoList = localReigstryCenter.get(serviceName).get(group);
+        // 从zk中拉取注册信息
+        ServiceInfo serviceInfo = serviceInfoList.get(serviceInfoList.size() - 1);
+        // 获取注册信息最后一个服务
+        url = "http://" + serviceInfo.getHost() + ":" + serviceInfo.getPort();
+
+        // RpcClient注解的url覆盖注册中心的
+        url = Optional.ofNullable(getUrl(joinPoint)).orElse(url);
 
         try {
             RpcfxResponse response = post(request, url);
@@ -117,7 +153,7 @@ public class RpcProxyFactoryAspect {
     private String getUrl(ProceedingJoinPoint joinPoint) {
         RpcClient annotation = joinPoint.getTarget().getClass().getAnnotation(RpcClient.class);
         if (annotation != null) {
-            return annotation.url();
+            return StringUtils.isNotEmpty(annotation.url()) ? annotation.url() : null;
         }
         return null;
     }

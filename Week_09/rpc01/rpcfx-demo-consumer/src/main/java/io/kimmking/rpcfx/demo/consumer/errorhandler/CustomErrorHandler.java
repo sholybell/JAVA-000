@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 /**
  * 自定义RPC异常处理器,指定特定名称异常处理器，覆盖默认异常处理器
  */
-@Component("rpcfxErrorHandler")
+//@Component
 public class CustomErrorHandler implements RpcfxErrorHandler {
 
     private Logger logger = LoggerFactory.getLogger(CustomErrorHandler.class);

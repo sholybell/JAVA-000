@@ -6,7 +6,9 @@ import com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter;
 import io.kimmking.rpcfx.api.RpcfxResolver;
 import io.kimmking.rpcfx.demo.provider.DemoResolver;
 import io.kimmking.rpcfx.server.RpcfxInvoker;
+import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
+import org.springframework.boot.autoconfigure.http.HttpMessageConvertersAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
@@ -19,6 +21,7 @@ import java.util.Collections;
 import java.util.List;
 
 @Configuration
+@AutoConfigureBefore(HttpMessageConvertersAutoConfiguration.class)
 public class Config {
 
     @Bean
@@ -64,7 +67,6 @@ public class Config {
 
     @Bean
     public XStreamMarshaller marshaller() {
-        XStreamMarshaller marshaller = new XStreamMarshaller();
-        return marshaller;
+        return new XStreamMarshaller();
     }
 }

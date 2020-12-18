@@ -1,10 +1,13 @@
 package io.kimmking.rpcfx.demo.provider.service;
 
+import io.kimmking.rpcfx.annotations.RpcServer;
 import io.kimmking.rpcfx.demo.api.model.Order;
 import io.kimmking.rpcfx.demo.api.service.OrderService;
-import org.springframework.stereotype.Service;
 
-@Service
+/**
+ * 作为一个RPC的服务端接口实现
+ */
+@RpcServer(value = "orderService")
 public class OrderServiceImpl implements OrderService {
 
     @Override
