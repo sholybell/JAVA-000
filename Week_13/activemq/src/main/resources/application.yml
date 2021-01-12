@@ -1,0 +1,10 @@
+spring:
+  activemq:
+    broker-url: tcp://127.0.0.1:61616
+    user: admin
+    password: admin
+#  jms:
+#    # Spring Boot集成ActiveMQ时默认只支持队列或者广播之一，
+#    # 通过配置项spring.jms.pub-sub-domain来指定，true 为广播模式，false为队列模式，默认情况下支持队列模式。
+#    pub-sub-domain: true
+
